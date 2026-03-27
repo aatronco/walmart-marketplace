@@ -54,9 +54,9 @@ class JumpsellerClient
 
   def post(path, body)
     response = connection.post("#{BASE_URL}#{path}") do |req|
+      req.params.merge!(auth_params.transform_keys(&:to_s))
       req.headers['Content-Type'] = 'application/json'
       req.headers['Accept']       = 'application/json'
-      req.headers['Authorization'] = "Bearer #{@login}:#{@authtoken}"
       req.body = body.to_json
     end
     JSON.parse(response.body)

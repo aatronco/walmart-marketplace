@@ -43,6 +43,7 @@ RSpec.describe JumpsellerClient do
     it 'posts order payload to Jumpseller' do
       order_data = { 'status' => 'paid', 'products' => [{ 'id' => 1, 'qty' => 2 }] }
       stub_request(:post, "#{base}/orders.json")
+        .with(query: hash_including('login' => 'test_login', 'authtoken' => 'test_token'))
         .to_return(status: 201, body: { 'order' => { 'id' => 999 } }.to_json,
                    headers: { 'Content-Type' => 'application/json' })
 
