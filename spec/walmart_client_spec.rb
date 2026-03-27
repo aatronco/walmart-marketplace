@@ -37,4 +37,42 @@ RSpec.describe WalmartClient do
       expect(WebMock).to have_requested(:post, token_url).once
     end
   end
+
+  describe '#update_inventory' do
+    it 'sends PUT with sku and quantity' do
+      stub_token
+      sku = 'SKU-42'
+      stub_request(:put, "https://marketplace.walmartapis.com/v3/inventory?sku=SKU-42")
+        .with(body: hash_including('sku' => sku, 'quantity' => { 'amount' => 5, 'unit' => 'EACH' }))
+        .to_return(status: 200, body: '{}', headers: { 'Content-Type' => 'application/json' })
+
+      result = client.update_inventory(sku, 5)
+      expect(result).to eq({})
+    end
+  end
+
+  describe '#get_orders' do
+    it 'fetches orders with Created status' do
+      stub_token
+      orders_response = { 'list' => { 'elements' => { 'order' => [] } } }
+      stub_request(:get, /marketplace\.walmartapis\.com\/v3\/orders/)
+        .with(query: hash_including('status' => 'Created'))
+        .to_return(status: 200, body: orders_response.to_json,
+                   headers: { 'Content-Type' => 'application/json' })
+
+      result = client.get_orders
+      expect(result).to eq(orders_response)
+    end
+  end
+
+  describe '#acknowledge_order' do
+    it 'posts to the acknowledge endpoint' do
+      stub_token
+      stub_request(:post, 'https://marketplace.walmartapis.com/v3/orders/PO-123/acknowledge')
+        .to_return(status: 200, body: '{}', headers: { 'Content-Type' => 'application/json' })
+
+      result = client.acknowledge_order('PO-123')
+      expect(result).to eq({})
+    end
+  end
 end
