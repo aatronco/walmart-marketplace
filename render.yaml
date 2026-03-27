@@ -17,8 +17,8 @@ services:
       - key: WALMART_CLIENT_SECRET
         sync: false
       - key: WALMART_ENV
-        value: sandbox
+        sync: false
       - key: WALMART_DEFAULT_CATEGORY
         value: "Decoración de Hogar, Cocina y Otros"
       - key: JUMPSELLER_PAYMENT_METHOD_ID
-        value: walmart
+        sync: false

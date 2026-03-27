@@ -81,20 +81,20 @@ task :sync_orders do
 
   if orders_data.empty?
     log('sync_orders', 'No new orders.')
-    next
+    return
   end
 
   newest_id = nil
   orders_data.each do |order|
     po_id = order['purchaseOrderId']
-    next if last_id && po_id <= last_id
+    next if last_id && po_id.to_i <= last_id.to_i
 
     begin
       jumpseller_payload = OrderMapper.to_jumpseller(order)
       js.create_order(jumpseller_payload)
       walmart.acknowledge_order(po_id)
       log('sync_orders', "Order #{po_id} → created in Jumpseller and acknowledged")
-      newest_id = po_id if newest_id.nil? || po_id > newest_id
+      newest_id = po_id if newest_id.nil? || po_id.to_i > newest_id.to_i
     rescue => e
       log('sync_orders', "ERROR order #{po_id}: #{e.message}")
     end

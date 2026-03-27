@@ -72,7 +72,7 @@ class WalmartClient
     {
       'Authorization'                 => "Bearer #{token}",
       'WM_MARKET'                     => 'cl',
-      'WM_CONSUMER.CHANNEL.TYPE'      => 'jumpseller',
+      'WM_CONSUMER.CHANNEL.TYPE'      => ENV.fetch('WALMART_CHANNEL_TYPE', 'jumpseller'),
       'Accept'                        => 'application/json',
       'Content-Type'                  => 'application/json'
     }
