@@ -8,6 +8,7 @@ gem 'dotenv'
 gem 'json'
 gem 'base64'
 gem 'rack'
+gem 'rake'
 
 group :development, :test do
   gem 'rspec', '~> 3.0'
