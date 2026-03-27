@@ -1,0 +1,24 @@
+# render.yaml
+services:
+  - type: web
+    name: jumpseller-walmart-webhook
+    env: ruby
+    buildCommand: bundle install
+    startCommand: bundle exec rackup config.ru -p $PORT -o 0.0.0.0
+    envVars:
+      - key: JUMPSELLER_LOGIN
+        sync: false
+      - key: JUMPSELLER_AUTH_TOKEN
+        sync: false
+      - key: JUMPSELLER_WEBHOOK_SECRET
+        sync: false
+      - key: WALMART_CLIENT_ID
+        sync: false
+      - key: WALMART_CLIENT_SECRET
+        sync: false
+      - key: WALMART_ENV
+        value: sandbox
+      - key: WALMART_DEFAULT_CATEGORY
+        value: "Decoración de Hogar, Cocina y Otros"
+      - key: JUMPSELLER_PAYMENT_METHOD_ID
+        value: walmart
