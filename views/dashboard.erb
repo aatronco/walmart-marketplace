@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Walmart × Jumpseller</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #0a0e1a;
+      --surface:     #131827;
+      --surface2:    #1a2035;
+      --border:      #1e2a45;
+      --accent:      #0071CE;
+      --text:        #c8cfe0;
+      --text-strong: #e8edf8;
+      --text-muted:  #5a6585;
+      --green:       #10b981;
+      --amber:       #f59e0b;
+      --red:         #ef4444;
+      --r:           8px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--text-strong);
+    }
+
+    .logo-badge {
+      background: var(--accent);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+    }
+
+    .header-meta {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .live-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      display: inline-block;
+      box-shadow: 0 0 6px var(--green);
+      margin-right: 6px;
+    }
+
+    /* ── Main ── */
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 24px 60px;
+    }
+
+    /* ── Stats ── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 16px 20px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .stat-value {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text-strong);
+      margin-top: 6px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-value.green { color: var(--green); }
+    .stat-value.amber { color: var(--amber); }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .btn-sync {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 9px 22px;
+      border-radius: var(--r);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+
+    .btn-sync:hover:not(:disabled) { opacity: 0.88; }
+    .btn-sync:active:not(:disabled) { transform: scale(0.98); }
+    .btn-sync:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .spinner {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.25);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+      display: none;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Table ── */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      overflow: hidden;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-variant-numeric: tabular-nums;
+    }
+
+    thead th {
+      background: var(--surface2);
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 10px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    thead th.r { text-align: right; }
+
+    tbody tr { border-bottom: 1px solid var(--border); }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(26,32,53,0.6); }
+
+    td {
+      padding: 13px 16px;
+      color: var(--text);
+      vertical-align: middle;
+    }
+
+    td.r { text-align: right; }
+
+    .product-name {
+      color: var(--text-strong);
+      font-weight: 500;
+    }
+
+    .sku {
+      font-family: ui-monospace, 'SF Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      background: var(--surface2);
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    .stock-val {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .stock-val.js   { color: var(--text-strong); }
+    .stock-val.wm   { color: var(--green); }
+    .stock-val.zero { color: var(--text-muted); }
+
+    /* Margin bar */
+    .margin-cell { display: flex; align-items: center; gap: 10px; }
+
+    .bar-bg {
+      width: 72px; height: 5px;
+      background: var(--surface2);
+      border-radius: 3px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--accent);
+      transition: width 0.4s ease;
+    }
+
+    .margin-text {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    /* Pills */
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    .dot { width: 6px; height: 6px; border-radius: 50%; }
+
+    .pill-active  { background: rgba(16,185,129,0.1);  color: var(--green); }
+    .pill-active  .dot { background: var(--green); }
+    .pill-buffer  { background: rgba(245,158,11,0.1);  color: var(--amber); }
+    .pill-buffer  .dot { background: var(--amber); }
+    .pill-nostock { background: rgba(90,101,133,0.12); color: var(--text-muted); }
+    .pill-nostock .dot { background: var(--text-muted); }
+
+    /* Skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.3s infinite;
+      border-radius: 4px;
+    }
+
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    /* ── Log ── */
+    .log-section { margin-top: 28px; }
+
+    .log-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .log-box {
+      background: #060a13;
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 14px 16px;
+      height: 200px;
+      overflow-y: auto;
+      font-family: ui-monospace, 'SF Mono', 'Cascadia Code', monospace;
+      font-size: 12px;
+      line-height: 1.75;
+    }
+
+    .log-row { display: flex; gap: 12px; }
+    .log-t { color: var(--text-muted); flex-shrink: 0; }
+    .log-m { color: var(--text); }
+    .log-m.success { color: var(--green); }
+    .log-m.error   { color: var(--red); }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 12px 18px;
+      font-size: 13px;
+      color: var(--text-strong);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+      transform: translateY(16px);
+      opacity: 0;
+      transition: all 0.22s ease;
+      pointer-events: none;
+      max-width: 300px;
+      z-index: 100;
+    }
+
+    #toast.show          { opacity: 1; transform: translateY(0); }
+    #toast.toast-success { border-color: var(--green); }
+    #toast.toast-error   { border-color: var(--red); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-badge">WM ×</span>
+    Walmart Chile — Jumpseller
+  </div>
+  <div class="header-meta">
+    <span><span class="live-dot"></span>Conectado</span>
+    <span id="last-sync-hdr">Última sync: —</span>
+  </div>
+</header>
+
+<main>
+  <div class="stats" id="stats">
+    <div class="stat-card">
+      <div class="stat-label">Productos</div>
+      <div class="stat-value" id="s-total">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Activos en Walmart</div>
+      <div class="stat-value green" id="s-active">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">En buffer</div>
+      <div class="stat-value amber" id="s-buf">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Stock total (JS)</div>
+      <div class="stat-value" id="s-total-stock">—</div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <span class="section-label">Inventario</span>
+    <button class="btn-sync" id="btn-sync" onclick="syncNow()">
+      <div class="spinner" id="spin"></div>
+      <span id="btn-lbl">Sincronizar Stock</span>
+    </button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>SKU</th>
+          <th class="r">Stock Jumpseller</th>
+          <th class="r">Stock Walmart</th>
+          <th>Margen de seguridad</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="6" style="padding:16px 16px">
+          <div class="skeleton" style="height:14px;width:55%"></div>
+        </td></tr>
+        <tr><td colspan="6" style="padding:16px 16px">
+          <div class="skeleton" style="height:14px;width:75%"></div>
+        </td></tr>
+        <tr><td colspan="6" style="padding:16px 16px">
+          <div class="skeleton" style="height:14px;width:40%"></div>
+        </td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="log-section">
+    <div class="log-header">
+      <span class="section-label">Registro de actividad</span>
+      <span style="font-size:12px;color:var(--text-muted)" id="log-meta"></span>
+    </div>
+    <div class="log-box" id="log-box">
+      <div class="log-row">
+        <span class="log-t">--:--:--</span>
+        <span class="log-m">Esperando actividad...</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="toast"></div>
+
+<script>
+  let lastLogLen = 0;
+
+  async function loadProducts() {
+    try {
+      const r    = await fetch('/api/products');
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || 'Error al cargar');
+      renderTable(data.products);
+      renderStats(data.products);
+    } catch(e) {
+      document.getElementById('tbody').innerHTML =
+        `<tr><td colspan="6" style="padding:20px;color:var(--red)">Error: ${esc(e.message)}</td></tr>`;
+    }
+  }
+
+  function renderTable(rows) {
+    const tb = document.getElementById('tbody');
+    if (!rows || !rows.length) {
+      tb.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-muted)">
+        Sin productos</td></tr>`;
+      return;
+    }
+    tb.innerHTML = rows.map(p => {
+      const held = p.js_stock - p.wm_stock;
+      const pct  = p.js_stock > 0 ? Math.round(held / p.js_stock * 100) : 0;
+      const wmCls = p.wm_stock > 0 ? 'wm' : 'zero';
+      let pill;
+      if (p.wm_stock > 0)      pill = `<span class="pill pill-active"><span class="dot"></span>Activo</span>`;
+      else if (p.js_stock > 0) pill = `<span class="pill pill-buffer"><span class="dot"></span>En buffer</span>`;
+      else                      pill = `<span class="pill pill-nostock"><span class="dot"></span>Sin stock</span>`;
+      return `<tr>
+        <td class="product-name">${esc(p.name)}</td>
+        <td><span class="sku">${esc(p.sku)}</span></td>
+        <td class="r"><span class="stock-val js">${p.js_stock}</span></td>
+        <td class="r"><span class="stock-val ${wmCls}">${p.wm_stock}</span></td>
+        <td><div class="margin-cell">
+          <div class="bar-bg"><div class="bar-fill" style="width:${pct}%"></div></div>
+          <span class="margin-text">${held} uds (${pct}%)</span>
+        </div></td>
+        <td>${pill}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function renderStats(rows) {
+    document.getElementById('s-total').textContent       = rows.length;
+    document.getElementById('s-active').textContent      = rows.filter(p => p.wm_stock > 0).length;
+    document.getElementById('s-buf').textContent         = rows.filter(p => p.wm_stock === 0 && p.js_stock > 0).length;
+    document.getElementById('s-total-stock').textContent = rows.reduce((s,p) => s + p.js_stock, 0);
+  }
+
+  async function syncNow() {
+    const btn = document.getElementById('btn-sync');
+    const sp  = document.getElementById('spin');
+    const lbl = document.getElementById('btn-lbl');
+    btn.disabled = true; sp.style.display = 'block'; lbl.textContent = 'Sincronizando...';
+    try {
+      const r    = await fetch('/sync', { method: 'POST' });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || 'Error');
+      showToast(`✓ ${data.synced} productos sincronizados`, 'success');
+      document.getElementById('last-sync-hdr').textContent = `Última sync: ${data.last_sync}`;
+      await loadProducts();
+    } catch(e) {
+      showToast(`✗ ${e.message}`, 'error');
+    } finally {
+      btn.disabled = false; sp.style.display = 'none'; lbl.textContent = 'Sincronizar Stock';
+    }
+  }
+
+  async function pollLogs() {
+    try {
+      const r    = await fetch('/api/logs');
+      const data = await r.json();
+      if (data.last_sync) {
+        document.getElementById('last-sync-hdr').textContent = `Última sync: ${data.last_sync}`;
+      }
+      if (data.logs && data.logs.length !== lastLogLen) {
+        lastLogLen = data.logs.length;
+        const box = document.getElementById('log-box');
+        box.innerHTML = data.logs.map(l =>
+          `<div class="log-row">
+            <span class="log-t">${esc(l.time)}</span>
+            <span class="log-m ${l.level}">${esc(l.msg)}</span>
+          </div>`).join('');
+        box.scrollTop = box.scrollHeight;
+      }
+    } catch(_) {}
+  }
+
+  function showToast(msg, type) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className   = `show toast-${type}`;
+    setTimeout(() => { t.className = ''; }, 3500);
+  }
+
+  function esc(s) {
+    return String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  loadProducts();
+  pollLogs();
+  setInterval(pollLogs, 3000);
+</script>
+</body>
+</html>

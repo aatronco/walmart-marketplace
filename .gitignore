@@ -1,2 +1,10 @@
 .env
 .last_order_id
+.DS_Store
+data/processed_orders.json
+
+# Binary/local files not needed in the repo
+*.xlsx
+*.docx
+*.zip
+*.rtfd/

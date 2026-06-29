@@ -2,6 +2,7 @@
 require 'faraday'
 require 'faraday/retry'
 require 'json'
+require 'base64'
 
 class JumpsellerClient
   BASE_URL = 'https://api.jumpseller.com/v1'.freeze
@@ -27,15 +28,15 @@ class JumpsellerClient
     results
   end
 
+  def update_product(id, attrs)
+    put("/products/#{id}.json", { product: attrs })
+  end
+
   def create_order(order_data)
     post('/orders.json', { order: order_data })
   end
 
   private
-
-  def auth_params
-    { login: @login, authtoken: @authtoken }
-  end
 
   def connection
     Faraday.new(url: BASE_URL) do |f|
@@ -46,15 +47,26 @@ class JumpsellerClient
 
   def get(path, params = {})
     response = connection.get("#{BASE_URL}#{path}") do |req|
-      req.params.merge!(auth_params.merge(params.transform_keys(&:to_s)))
+      req.headers['Authorization'] = "Basic #{Base64.strict_encode64("#{@login}:#{@authtoken}")}"
       req.headers['Accept'] = 'application/json'
+      req.params.merge!(params.transform_keys(&:to_s))
+    end
+    JSON.parse(response.body)
+  end
+
+  def put(path, body)
+    response = connection.put("#{BASE_URL}#{path}") do |req|
+      req.headers['Authorization'] = "Basic #{Base64.strict_encode64("#{@login}:#{@authtoken}")}"
+      req.headers['Content-Type'] = 'application/json'
+      req.headers['Accept']       = 'application/json'
+      req.body = body.to_json
     end
     JSON.parse(response.body)
   end
 
   def post(path, body)
     response = connection.post("#{BASE_URL}#{path}") do |req|
-      req.params.merge!(auth_params.transform_keys(&:to_s))
+      req.headers['Authorization'] = "Basic #{Base64.strict_encode64("#{@login}:#{@authtoken}")}"
       req.headers['Content-Type'] = 'application/json'
       req.headers['Accept']       = 'application/json'
       req.body = body.to_json
