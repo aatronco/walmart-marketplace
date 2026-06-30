@@ -8,7 +8,8 @@ require_relative 'lib/walmart_client'
 require_relative 'lib/jumpseller_client'
 require_relative 'lib/product_mapper'
 
-WEBHOOK_SECRET = ENV.fetch('JUMPSELLER_WEBHOOK_SECRET')
+WEBHOOK_SECRET    = ENV.fetch('JUMPSELLER_WEBHOOK_SECRET')
+DASHBOARD_PASSWORD = ENV.fetch('DASHBOARD_PASSWORD')
 
 LOG_BUFFER_SIZE = 150
 $dashboard_logs = []
@@ -28,10 +29,12 @@ end
 # ── Dashboard ──────────────────────────────────────────────────────────────────
 
 get '/' do
+  protected!
   erb :dashboard
 end
 
 get '/api/products' do
+  protected!
   content_type :json
   begin
     products = JumpsellerClient.new.all_products.map do |raw|
@@ -53,6 +56,7 @@ get '/api/products' do
 end
 
 post '/sync' do
+  protected!
   content_type :json
   begin
     dashboard_log('Sincronización iniciada')
@@ -84,6 +88,7 @@ post '/sync' do
 end
 
 get '/api/logs' do
+  protected!
   content_type :json
   entries = $log_mutex.synchronize { $dashboard_logs.last(50) }
   { logs: entries, last_sync: $last_sync }.to_json
@@ -92,6 +97,18 @@ end
 # ── Webhook (existing) ─────────────────────────────────────────────────────────
 
 helpers do
+  def protected!
+    return if authorized?
+    headers['WWW-Authenticate'] = 'Basic realm="Walmart Dashboard"'
+    halt 401, 'Acceso no autorizado'
+  end
+
+  def authorized?
+    @auth ||= Rack::Auth::Basic::Request.new(request.env)
+    @auth.provided? && @auth.basic? &&
+      Rack::Utils.secure_compare(@auth.credentials[1], DASHBOARD_PASSWORD)
+  end
+
   def valid_signature?(body, received_sig)
     expected = OpenSSL::HMAC.hexdigest('SHA256', WEBHOOK_SECRET, body)
     Rack::Utils.secure_compare(expected, received_sig.to_s)
