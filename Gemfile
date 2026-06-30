@@ -9,6 +9,7 @@ gem 'json'
 gem 'base64'
 gem 'rack'
 gem 'rake'
+gem 'puma'
 
 group :development, :test do
   gem 'rspec', '~> 3.0'
