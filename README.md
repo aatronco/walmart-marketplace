@@ -2,6 +2,15 @@
 
 Syncs products, inventory, and orders between a Jumpseller store and Walmart Chile Marketplace.
 
+## How it works — the big picture
+
+The integration runs as a web server with a dashboard. **Sync is triggered manually by pressing a button** — there is no background process running on its own. Each time the seller clicks **Sync** in the dashboard, the integration:
+
+1. Checks Walmart for new orders and imports them into Jumpseller as paid orders
+2. Reads current stock from Jumpseller and updates inventory on Walmart
+
+This means the seller (or an automated scheduler) must press the button — or call the sync endpoint — regularly to keep both platforms in sync. For production use, we recommend scheduling an automatic call every 15 minutes (see [Production deploy](#production-deploy-rendercom)).
+
 ---
 
 ## What it does
@@ -9,9 +18,9 @@ Syncs products, inventory, and orders between a Jumpseller store and Walmart Chi
 | Feature | Description |
 |---------|-------------|
 | **Product publishing** | Sends the Jumpseller catalog to Walmart in GTIN format |
-| **Inventory sync** | Updates stock on Walmart whenever it changes in Jumpseller |
-| **Order sync** | Detects new Walmart sales and automatically creates them in Jumpseller as paid orders |
-| **Web dashboard** | Control panel with inventory status, real-time logs, and a manual sync button |
+| **Inventory sync** | Reads stock from Jumpseller and updates Walmart on each sync |
+| **Order sync** | Imports new Walmart orders into Jumpseller as paid orders on each sync |
+| **Web dashboard** | Control panel with a **Sync** button, inventory status, and real-time logs |
 
 ---
 
