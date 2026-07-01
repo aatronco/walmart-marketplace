@@ -131,34 +131,40 @@ Método envío     : STANDARD
 
 ## Inventory safety buffer
 
-To prevent overselling, the stock sent to Walmart is always lower than the real Jumpseller stock. The formula uses two parameters:
+To prevent overselling across multiple channels, the stock sent to Walmart is intentionally lower than the real Jumpseller stock. Two independent parameters control this:
 
-- **`STOCK_BUFFER`** — minimum units required in Jumpseller before showing any stock on Walmart. Below this threshold, Walmart sees 0.
-- **`STOCK_DIVISOR`** — divides the Jumpseller stock to calculate what Walmart sees.
+**`STOCK_BUFFER`** is the minimum switch. If Jumpseller stock is at or below this number, Walmart sees **0** — regardless of anything else. This protects your last units from being sold on Walmart while you may still need them for other channels or pending orders.
+
+**`STOCK_DIVISOR`** is the exposure fraction. Once stock is above the buffer, Walmart sees `floor(stock / STOCK_DIVISOR)`. This means you never expose your full inventory — even with 100 units, Walmart only sees 20. It acts as a speed limiter: the higher the divisor, the smaller the fraction Walmart sees.
+
+They work in sequence:
 
 ```
-walmart_stock = floor(jumpseller_stock / STOCK_DIVISOR)   if jumpseller_stock > STOCK_BUFFER
-walmart_stock = 0                                          otherwise
+if jumpseller_stock > STOCK_BUFFER
+  walmart_stock = floor(jumpseller_stock / STOCK_DIVISOR)
+else
+  walmart_stock = 0
 ```
 
-Default values (both set to `5`):
+Default values (both `5`):
 
-| Jumpseller stock | Walmart stock |
-|------------------|---------------|
-| 1–5 units | 0 |
-| 6 units | 1 |
-| 10 units | 2 |
-| 25 units | 5 |
-| 100 units | 20 |
+| Jumpseller stock | Passes buffer? | Walmart sees |
+|------------------|----------------|--------------|
+| 3 | No (3 ≤ 5) | **0** |
+| 5 | No (5 ≤ 5) | **0** |
+| 6 | Yes → 6/5 | **1** |
+| 10 | Yes → 10/5 | **2** |
+| 25 | Yes → 25/5 | **5** |
+| 100 | Yes → 100/5 | **20** |
 
-To change these values, add them to `.env`:
+To adjust, add to `.env`:
 
 ```env
-STOCK_BUFFER=5
-STOCK_DIVISOR=5
+STOCK_BUFFER=5    # units kept off Walmart at minimum (safety floor)
+STOCK_DIVISOR=5   # fraction exposed: Walmart sees 1 out of every 5 units
 ```
 
-A higher `STOCK_DIVISOR` means Walmart sees a smaller fraction of your real stock (more conservative). A higher `STOCK_BUFFER` means more units are required before Walmart shows any availability.
+Raise `STOCK_BUFFER` if you want to reserve more units before Walmart shows any availability. Raise `STOCK_DIVISOR` if you want Walmart to see a smaller proportion of your stock.
 
 ---
 
