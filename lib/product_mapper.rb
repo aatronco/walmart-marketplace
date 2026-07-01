@@ -314,13 +314,14 @@ class ProductMapper
   # Stock safety buffer: never expose real inventory to Walmart.
   # Requires ≥ STOCK_BUFFER units in Jumpseller before showing any stock.
   # Exposes floor(qty / STOCK_DIVISOR) — so 10 units → 2, 6 units → 1, ≤5 → 0.
-  STOCK_BUFFER  = 5
-  STOCK_DIVISOR = 5
+  # Configurable via STOCK_BUFFER / STOCK_DIVISOR env vars (defaults: 5 / 5)
+  def self.stock_buffer  = ENV.fetch('STOCK_BUFFER',  '5').to_i
+  def self.stock_divisor = ENV.fetch('STOCK_DIVISOR', '5').to_i
 
   def self.walmart_stock(jumpseller_qty)
     qty = jumpseller_qty.to_i
-    return 0 if qty <= STOCK_BUFFER
-    qty / STOCK_DIVISOR
+    return 0 if qty <= stock_buffer
+    qty / stock_divisor
   end
 
   def self.fake_gtin(sku)

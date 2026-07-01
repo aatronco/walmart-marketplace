@@ -131,14 +131,34 @@ Método envío     : STANDARD
 
 ## Inventory safety buffer
 
-To prevent overselling, the stock sent to Walmart is calculated as follows:
+To prevent overselling, the stock sent to Walmart is always lower than the real Jumpseller stock. The formula uses two parameters:
+
+- **`STOCK_BUFFER`** — minimum units required in Jumpseller before showing any stock on Walmart. Below this threshold, Walmart sees 0.
+- **`STOCK_DIVISOR`** — divides the Jumpseller stock to calculate what Walmart sees.
+
+```
+walmart_stock = floor(jumpseller_stock / STOCK_DIVISOR)   if jumpseller_stock > STOCK_BUFFER
+walmart_stock = 0                                          otherwise
+```
+
+Default values (both set to `5`):
 
 | Jumpseller stock | Walmart stock |
 |------------------|---------------|
-| 0–5 units | 0 |
-| 6+ units | `floor(stock / 5)` |
+| 1–5 units | 0 |
+| 6 units | 1 |
+| 10 units | 2 |
+| 25 units | 5 |
+| 100 units | 20 |
 
-Example: 25 units in Jumpseller → 5 units listed on Walmart.
+To change these values, add them to `.env`:
+
+```env
+STOCK_BUFFER=5
+STOCK_DIVISOR=5
+```
+
+A higher `STOCK_DIVISOR` means Walmart sees a smaller fraction of your real stock (more conservative). A higher `STOCK_BUFFER` means more units are required before Walmart shows any availability.
 
 ---
 
