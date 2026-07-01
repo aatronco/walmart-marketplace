@@ -1,32 +1,32 @@
-# Integración Jumpseller × Walmart Chile
+# Jumpseller × Walmart Chile Integration
 
-Sincroniza productos, inventario y órdenes entre una tienda Jumpseller y Walmart Chile Marketplace.
+Syncs products, inventory, and orders between a Jumpseller store and Walmart Chile Marketplace.
 
 ---
 
-## Qué hace
+## What it does
 
-| Función | Descripción |
+| Feature | Description |
 |---------|-------------|
-| **Publicación de productos** | Envía el catálogo de Jumpseller a Walmart en formato GTIN |
-| **Sincronización de inventario** | Actualiza el stock en Walmart cada vez que cambia en Jumpseller |
-| **Sincronización de órdenes** | Detecta ventas nuevas en Walmart y las crea automáticamente en Jumpseller como órdenes "Pagadas" |
-| **Dashboard web** | Panel de control con estado del inventario, logs en tiempo real y botón de sincronización manual |
+| **Product publishing** | Sends the Jumpseller catalog to Walmart in GTIN format |
+| **Inventory sync** | Updates stock on Walmart whenever it changes in Jumpseller |
+| **Order sync** | Detects new Walmart sales and automatically creates them in Jumpseller as paid orders |
+| **Web dashboard** | Control panel with inventory status, real-time logs, and a manual sync button |
 
 ---
 
-## Requisitos
+## Requirements
 
 - Ruby 3.x
 - Bundler (`gem install bundler`)
-- Cuenta activa en Jumpseller con acceso a API
-- Cuenta de vendedor en Walmart Chile Marketplace con API Keys
+- Active Jumpseller account with API access
+- Walmart Chile Marketplace seller account with API Keys
 
 ---
 
-## Instalación
+## Installation
 
-### 1. Clonar el repositorio
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/aatronco/walmart-marketplace.git
@@ -34,90 +34,90 @@ cd walmart-marketplace
 bundle install
 ```
 
-### 2. Configurar credenciales
+### 2. Configure credentials
 
-Copiar el archivo de ejemplo y completar con las credenciales reales:
+Copy the example file and fill in the real credentials:
 
 ```bash
 cp .env.example .env
 ```
 
-Editar `.env`:
+Edit `.env`:
 
 ```env
-# Credenciales Jumpseller (Configuración → API)
-JUMPSELLER_LOGIN=tu_login
-JUMPSELLER_AUTH_TOKEN=tu_auth_token
+# Jumpseller credentials (Settings → API)
+JUMPSELLER_LOGIN=your_login
+JUMPSELLER_AUTH_TOKEN=your_auth_token
 
-# Secret para el webhook (generar con el comando de abajo)
+# Webhook secret (generate with the command below)
 JUMPSELLER_WEBHOOK_SECRET=...
 
-# Contraseña del dashboard web
-DASHBOARD_PASSWORD=una_contraseña_segura
+# Dashboard password
+DASHBOARD_PASSWORD=a_secure_password
 
-# Credenciales Walmart Chile (Seller Center → Configuración → API Keys)
-WALMART_CLIENT_ID=tu_client_id
-WALMART_CLIENT_SECRET=tu_client_secret
+# Walmart Chile credentials (Seller Center → Settings → API Keys)
+WALMART_CLIENT_ID=your_client_id
+WALMART_CLIENT_SECRET=your_client_secret
 WALMART_ENV=production
 ```
 
-Para generar el `JUMPSELLER_WEBHOOK_SECRET`:
+To generate a `JUMPSELLER_WEBHOOK_SECRET`:
 ```bash
 ruby -e "require 'securerandom'; puts SecureRandom.hex(32)"
 ```
 
-> ⚠️ El archivo `.env` nunca debe subirse a Git. Ya está incluido en `.gitignore`.
+> ⚠️ The `.env` file must never be committed to Git. It is already listed in `.gitignore`.
 
 ---
 
-## Uso
+## Usage
 
-### Dashboard web (recomendado)
+### Web dashboard (recommended)
 
-Inicia el servidor:
+Start the server:
 
 ```bash
 bundle exec rackup config.ru -p 4567
 ```
 
-Abre `http://localhost:4567` en el navegador. Pedirá usuario y contraseña — el usuario puede ser cualquier cosa, la contraseña es la del `DASHBOARD_PASSWORD`.
+Open `http://localhost:4567` in your browser. You will be prompted for a username and password — the username can be anything, the password is the value of `DASHBOARD_PASSWORD`.
 
-Desde el dashboard se puede:
-- Ver el inventario actual (Jumpseller vs Walmart, con margen de seguridad)
-- Hacer clic en **Sincronizar** para importar órdenes nuevas de Walmart y actualizar el inventario
-- Ver el log de actividad en tiempo real
+From the dashboard you can:
+- View current inventory (Jumpseller vs Walmart, with safety buffer)
+- Click **Sync** to import new Walmart orders and update inventory
+- Monitor the activity log in real time
 
-### Scripts por línea de comandos
+### Command-line scripts
 
-**Publicar productos a Walmart** (primera vez o cuando se agregan productos nuevos):
+**Publish products to Walmart** (first time, or when new products are added):
 ```bash
 bundle exec rake publish_products
 ```
 
-**Sincronizar órdenes manualmente:**
+**Sync orders manually:**
 ```bash
 ruby scripts/sync_orders.rb
 ```
 
-**Sincronizar inventario manualmente:**
+**Sync inventory manually:**
 ```bash
 bundle exec rake sync_inventory
 ```
 
 ---
 
-## Cómo funciona la sincronización de órdenes
+## How order sync works
 
-1. Consulta Walmart por órdenes de los últimos 7 días en estado `Created`
-2. Filtra las que ya fueron procesadas (guardadas en `data/processed_orders.json`)
-3. Por cada orden nueva:
-   - Busca o crea el cliente en Jumpseller por email
-   - Crea la orden en Jumpseller con estado `Paid` y método de pago `Walmart`
-   - Marca la orden como `Acknowledged` en Walmart
-   - Guarda el ID en `processed_orders.json` para evitar duplicados
-4. Sincroniza el inventario actualizado hacia Walmart
+1. Fetches Walmart orders from the last 7 days with status `Created`
+2. Skips orders already processed (tracked in `data/processed_orders.json`)
+3. For each new order:
+   - Looks up or creates the customer in Jumpseller by email
+   - Creates the order in Jumpseller with status `Paid` and payment method `Walmart`
+   - Marks the order as `Acknowledged` in Walmart
+   - Saves the order ID to `processed_orders.json` to prevent duplicates
+4. Syncs updated inventory back to Walmart
 
-Las órdenes creadas en Jumpseller incluyen en el campo "Notas para la empresa de envío":
+Orders created in Jumpseller include the following in the **Notes for the Shipping Company** field:
 ```
 Venta Walmart Marketplace
 Walmart Order ID : P111546914
@@ -129,69 +129,69 @@ Método envío     : STANDARD
 
 ---
 
-## Inventario y margen de seguridad
+## Inventory safety buffer
 
-Para evitar sobreventa, el stock que se envía a Walmart se calcula así:
+To prevent overselling, the stock sent to Walmart is calculated as follows:
 
-| Stock en Jumpseller | Stock enviado a Walmart |
-|---------------------|------------------------|
-| 0–5 unidades | 0 |
-| 6+ unidades | `floor(stock / 5)` |
+| Jumpseller stock | Walmart stock |
+|------------------|---------------|
+| 0–5 units | 0 |
+| 6+ units | `floor(stock / 5)` |
 
-Ejemplo: 25 unidades en Jumpseller → 5 unidades en Walmart.
+Example: 25 units in Jumpseller → 5 units listed on Walmart.
 
 ---
 
-## Deploy en producción (Render.com)
+## Production deploy (Render.com)
 
-El repositorio incluye `render.yaml` con la configuración lista. Para desplegar:
+The repository includes a ready-to-use `render.yaml`. To deploy:
 
-1. Conectar el repositorio en [render.com](https://render.com)
-2. Configurar las variables de entorno en el panel de Render (las mismas del `.env`)
-3. El deploy es automático con cada push a `main`
+1. Connect the repository on [render.com](https://render.com)
+2. Set the environment variables in the Render dashboard (same as your `.env`)
+3. Deploys happen automatically on every push to `main`
 
-Para la sincronización automática de órdenes, configurar un cron job en Render o un servicio externo que llame `POST /sync` cada 15 minutos:
+For automatic order sync, set up a cron job on Render or an external scheduler to call `POST /sync` every 15 minutes:
 
 ```bash
-curl -X POST https://tu-app.onrender.com/sync \
-  -u ":tu_dashboard_password"
+curl -X POST https://your-app.onrender.com/sync \
+  -u ":your_dashboard_password"
 ```
 
 ---
 
-## Estructura del proyecto
+## Project structure
 
 ```
-├── app.rb                  # Servidor web (dashboard + webhook)
-├── config.ru               # Entry point Rack/Puma
-├── Rakefile                # Tareas: publish_products, sync_inventory
+├── app.rb                   # Web server (dashboard + webhook)
+├── config.ru                # Rack/Puma entry point
+├── Rakefile                 # Tasks: publish_products, sync_inventory
 ├── lib/
-│   ├── walmart_client.rb   # Cliente API Walmart Chile
-│   ├── jumpseller_client.rb # Cliente API Jumpseller
-│   ├── product_mapper.rb   # Convierte productos JS → formato Walmart
-│   └── order_mapper.rb     # Convierte órdenes Walmart → formato JS
+│   ├── walmart_client.rb    # Walmart Chile API client
+│   ├── jumpseller_client.rb # Jumpseller API client
+│   ├── product_mapper.rb    # Converts Jumpseller products → Walmart format
+│   └── order_mapper.rb      # Converts Walmart orders → Jumpseller format
 ├── scripts/
-│   └── sync_orders.rb      # Script de sincronización de órdenes
+│   └── sync_orders.rb       # Order sync script
 ├── views/
-│   └── dashboard.erb       # Vista HTML del dashboard
+│   └── dashboard.erb        # Dashboard HTML view
 ├── data/
-│   └── processed_orders.json # Registro de órdenes ya sincronizadas
-├── .env.example            # Plantilla de configuración
-└── render.yaml             # Configuración de deploy en Render.com
+│   └── processed_orders.json # Record of already-synced orders
+├── .env.example             # Configuration template
+└── render.yaml              # Render.com deploy configuration
 ```
 
 ---
 
-## Solución de problemas
+## Troubleshooting
 
-**El dashboard pide contraseña pero no acepta la mía**
-→ Verificar que `DASHBOARD_PASSWORD` en `.env` coincide con lo que se ingresa. El usuario puede ser cualquier texto.
+**Dashboard does not accept my password**
+→ Check that `DASHBOARD_PASSWORD` in `.env` matches what you are entering. The username field can be anything.
 
-**"No new orders" al sincronizar pero hay órdenes en Walmart**
-→ Las órdenes deben estar en estado `Created` en Walmart. Si ya fueron `Acknowledged` por otro medio, no aparecerán.
+**"No new orders" when syncing but orders exist in Walmart**
+→ Orders must be in `Created` status on Walmart. If they were already acknowledged by another means, they will not appear.
 
-**Error al crear orden en Jumpseller**
-→ Revisar los logs del dashboard. Los errores más comunes son: producto sin stock, cliente con email inválido, o credenciales de Jumpseller incorrectas.
+**Error creating order in Jumpseller**
+→ Check the dashboard logs. The most common causes are: product out of stock, invalid customer email, or incorrect Jumpseller credentials.
 
-**Una orden aparece duplicada**
-→ Revisar `data/processed_orders.json`. Si la orden tiene `js_order_id` con valor, ya está procesada y no se repetirá. Si tiene `null`, el intento anterior falló y se reintentará.
+**An order appears duplicated**
+→ Check `data/processed_orders.json`. If the order has a non-null `js_order_id`, it was already processed and will not be repeated. If `js_order_id` is `null`, the previous attempt failed and will be retried on the next sync.
