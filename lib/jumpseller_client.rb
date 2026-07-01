@@ -36,7 +36,53 @@ class JumpsellerClient
     post('/orders.json', { order: order_data })
   end
 
+  # Looks up a customer by email; creates them if not found.
+  # address hash keys: :name, :surname, :address, :city, :region, :country, :municipality
+  # Returns the Jumpseller customer ID (integer).
+  def find_or_create_customer(email, first_name, last_name, phone, address: {})
+    results  = get('/customers.json', email: email, limit: 1)
+    existing = Array(results).first
+
+    if existing
+      c = existing.is_a?(Hash) && existing['customer'] ? existing['customer'] : existing
+      customer_id = c['id']
+      # Add shipping address if the customer has none
+      if address.any? && Array(c['shipping_addresses']).empty?
+        put("/customers/#{customer_id}.json", {
+          customer: { shipping_address: build_js_address(first_name, last_name, address) }
+        })
+      end
+      return customer_id
+    end
+
+    payload = {
+      customer: {
+        email:    email,
+        fullname: "#{first_name} #{last_name}".strip,
+        phone:    phone.to_s,
+        status:   'approved'
+      }
+    }
+    payload[:customer][:shipping_address] = build_js_address(first_name, last_name, address) if address.any?
+
+    result = post('/customers.json', payload)
+    c = result.is_a?(Hash) && result['customer'] ? result['customer'] : result
+    c['id']
+  end
+
   private
+
+  def build_js_address(first_name, last_name, addr)
+    {
+      name:         first_name.to_s,
+      surname:      last_name.to_s,
+      address:      addr[:address].to_s,
+      city:         addr[:city].to_s,
+      region:       addr[:region].to_s,
+      country:      addr[:country] || 'CL',
+      municipality: addr[:municipality] || addr[:city].to_s
+    }
+  end
 
   def connection
     Faraday.new(url: BASE_URL) do |f|
