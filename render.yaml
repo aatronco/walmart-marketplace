@@ -22,3 +22,5 @@ services:
         value: "Decoración de Hogar, Cocina y Otros"
       - key: JUMPSELLER_PAYMENT_METHOD_ID
         sync: false
+      - key: DASHBOARD_PASSWORD
+        sync: false

@@ -11,6 +11,9 @@ require_relative 'lib/order_mapper'
 
 WEBHOOK_SECRET    = ENV.fetch('JUMPSELLER_WEBHOOK_SECRET')
 DASHBOARD_PASSWORD = ENV['DASHBOARD_PASSWORD'].to_s
+if DASHBOARD_PASSWORD.empty? && ENV['RACK_ENV'] == 'production'
+  raise 'DASHBOARD_PASSWORD must be set in production — an open dashboard exposes /sync publicly'
+end
 
 LOG_BUFFER_SIZE = 150
 $dashboard_logs = []
