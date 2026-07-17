@@ -10,7 +10,7 @@ require_relative 'lib/product_mapper'
 require_relative 'lib/order_mapper'
 
 WEBHOOK_SECRET    = ENV.fetch('JUMPSELLER_WEBHOOK_SECRET')
-DASHBOARD_PASSWORD = ENV.fetch('DASHBOARD_PASSWORD')
+DASHBOARD_PASSWORD = ENV['DASHBOARD_PASSWORD'].to_s
 
 LOG_BUFFER_SIZE = 150
 $dashboard_logs = []
@@ -190,6 +190,7 @@ helpers do
   end
 
   def authorized?
+    return true if DASHBOARD_PASSWORD.empty?
     @auth ||= Rack::Auth::Basic::Request.new(request.env)
     @auth.provided? && @auth.basic? &&
       Rack::Utils.secure_compare(@auth.credentials[1], DASHBOARD_PASSWORD)

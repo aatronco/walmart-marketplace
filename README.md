@@ -61,7 +61,7 @@ JUMPSELLER_AUTH_TOKEN=your_auth_token
 # Webhook secret (generate with the command below)
 JUMPSELLER_WEBHOOK_SECRET=...
 
-# Dashboard password
+# Dashboard password (optional — leave unset for no password prompt)
 DASHBOARD_PASSWORD=a_secure_password
 
 # Walmart Chile credentials (Seller Center → Settings → API Keys)
@@ -89,7 +89,7 @@ Start the server:
 bundle exec rackup config.ru -p 4567
 ```
 
-Open `http://localhost:4567` in your browser. You will be prompted for a username and password — the username can be anything, the password is the value of `DASHBOARD_PASSWORD`.
+Open `http://localhost:4567` in your browser. If `DASHBOARD_PASSWORD` is set, you will be prompted for a username and password — the username can be anything, the password is the value of `DASHBOARD_PASSWORD`. If it is not set, the dashboard opens directly with no password prompt (recommended only for local use — always set a password on a public deployment).
 
 From the dashboard you can:
 - View current inventory (Jumpseller vs Walmart, with safety buffer)
@@ -220,7 +220,7 @@ curl -X POST https://your-app.onrender.com/sync \
 ## Troubleshooting
 
 **Dashboard does not accept my password**
-→ Check that `DASHBOARD_PASSWORD` in `.env` matches what you are entering. The username field can be anything.
+→ Check that `DASHBOARD_PASSWORD` in `.env` matches what you are entering. The username field can be anything. To disable the password entirely (local use only), remove `DASHBOARD_PASSWORD` from `.env`.
 
 **"No new orders" when syncing but orders exist in Walmart**
 → Orders must be in `Created` status on Walmart. If they were already acknowledged by another means, they will not appear.
